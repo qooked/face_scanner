@@ -2,6 +2,10 @@ package http
 
 import (
 	"context"
+	"faceScanner/internal/controllers/http/handlers"
+	"faceScanner/internal/controllers/http/middleware"
+	"faceScanner/internal/controllers/http/routes"
+	"faceScanner/internal/models"
 	"fmt"
 	"github.com/gofiber/fiber/v2"
 )
@@ -19,6 +23,14 @@ type FiberAppParams struct {
 type Server struct {
 	app     *fiber.App
 	options ServerOptions
+}
+
+type Usecase interface {
+	ExtendFaceScannerTask(ctx context.Context, task models.ExtendFaceScannerTaskUsecase) (err error)
+	GetFaceScannerTask(ctx context.Context, taskUUID string) (task models.GetFaceScannerTaskResponseUsecase, err error)
+	StartFaceScannerTask(ctx context.Context, taskUUID string) (err error)
+	DeleteFaceScannerTask(ctx context.Context, taskUUID string) (err error)
+	CreateFaceScannerTask(ctx context.Context, task models.CreateFaceScannerTaskParamsUsecase) (err error)
 }
 
 func NewServer(
@@ -57,4 +69,18 @@ func (s *Server) Shutdown(ctx context.Context) error {
 	}
 
 	return nil
+}
+
+func (s *Server) AttachHandlers(ctx context.Context, taskUsecase Usecase) {
+	middleware := middleware.NewHttpMiddleware(
+		s.options.AuthorizationKey,
+	)
+
+	s.app.Use(middleware.AuthorizationMiddleware())
+
+	taskGroup := s.app.Group("/task")
+	taskHandlers := handlers.NewFaceScannerHandlers(
+		taskUsecase)
+
+	routes.AttachCascadeRoutes(taskGroup, taskHandlers)
 }

@@ -1,6 +1,7 @@
 package models
 
 type TevianApiResponse struct {
+	BodyRaw    string     `json:"-"`
 	Data       []FaceData `json:"data"`
 	Rotation   int        `json:"rotation"`
 	StatusCode int        `json:"status_code"`

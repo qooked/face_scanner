@@ -12,3 +12,4 @@ postgres:
 face_scan_api:
   url: https://backend.facecloud.tevian.ru/api/v1/detect
   face_scan_api_authorization_key: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE3MjUxMjQ0ODMsIm5iZiI6MTcyNTEyNDQ4MywianRpIjoiYTdkMzQwNDUtYzY2MC00NTY3LTkwZTYtYjAyZmFiNjAwZTU2Iiwic3ViIjo0NjIsImZyZXNoIjpmYWxzZSwidHlwZSI6ImFjY2VzcyJ9.juOEpCjilG5Xv4PqomzjTdK3nCsmyO73TdhyKi1RV8U
+  face_scan_api_mime_type: image/jpeg

@@ -29,6 +29,7 @@ type Postgres struct {
 type FaceScanAPI struct {
 	URL           string `yaml:"url"`
 	Authorization string `yaml:"face_scan_api_authorization_key"`
+	MimeType      string `yaml:"face_scan_api_mime_type"`
 }
 
 func LoadConfig() (cfg *Config, err error) {

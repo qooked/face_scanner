@@ -1,10 +1,5 @@
 package models
 
-type TaskParams struct {
-	TaskUUID string
-	Image    []byte
-}
-
 type TaskResponse struct {
 	TaskUUID string
 	Status   string

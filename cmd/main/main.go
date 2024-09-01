@@ -4,6 +4,7 @@ import (
 	"context"
 	"faceScanner/config"
 	"faceScanner/internal/adapters/repository"
+	"faceScanner/internal/adapters/tevianAPI"
 	"faceScanner/internal/controllers/http"
 	"faceScanner/internal/usecase"
 	"faceScanner/pkg/database"
@@ -39,23 +40,26 @@ func main() {
 	}
 	slog.Info("Database connected")
 
-	Server := http.NewServer(
+	server := http.NewServer(
 		cfg.Server.Host,
 		cfg.Server.Port,
 		cfg.Server.AuthorizationKey,
 	)
 
+	tevianRequestProvider := tevianAPI.NewTevianProvider(cfg.FaceScanAPI.URL, cfg.FaceScanAPI.Authorization, cfg.FaceScanAPI.MimeType)
+	fmt.Println(cfg.FaceScanAPI.URL, cfg.FaceScanAPI.Authorization, cfg.FaceScanAPI.MimeType)
 	repo := repository.New(postgres)
-	uc := usecase.New(repo)
-	Server.AttachHandlers(ctx, uc)
+	uc := usecase.New(repo, tevianRequestProvider)
+
+	server.AttachHandlers(ctx, uc)
 
 	doneChan := make(chan struct{})
-	go Server.Run()
+	go server.Run()
 	slog.Info(fmt.Sprintf("Server started on %s:%s", cfg.Server.Host, cfg.Server.Port))
 	go func() {
 		<-signalChan
 		slog.Info("Shutting down server...")
-		err = Server.Shutdown(ctx)
+		err = server.Shutdown(ctx)
 		if err != nil {
 			slog.Error("Server.Shutdown(...): %w", err)
 		}

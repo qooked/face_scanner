@@ -40,8 +40,8 @@ type Demographics struct {
 }
 
 type Age struct {
-	Mean     int `json:"mean"`
-	Variance int `json:"variance"`
+	Mean     float64 `json:"mean"`
+	Variance float64 `json:"variance"`
 }
 
 type Landmark struct {
@@ -60,4 +60,31 @@ type Quality struct {
 	Blurriness    int `json:"blurriness"`
 	Overexposure  int `json:"overexposure"`
 	Underexposure int `json:"underexposure"`
+}
+
+func (t TevianApiResponse) GetMaleFemaleCount() (maleCount int, femaleCount int) {
+	for _, face := range t.Data {
+		if face.Demographics.Gender == "male" {
+			maleCount++
+		}
+		if face.Demographics.Gender == "female" {
+			femaleCount++
+		}
+	}
+	return maleCount, femaleCount
+}
+
+func (d *FaceData) GetMaleAgeOrZero() float64 {
+	if d.Demographics.Gender != "male" {
+		return 0
+	}
+	return d.Demographics.Age.Mean
+
+}
+
+func (d *FaceData) GetFemaleAgeOrZero() float64 {
+	if d.Demographics.Gender != "female" {
+		return 0
+	}
+	return d.Demographics.Age.Mean
 }

@@ -18,6 +18,7 @@ type Usecase struct {
 
 type TevianRequestProvider interface {
 	ProvideRequest(image []byte) (tevianApiResponse models.TevianApiResponse, err error)
+	GetResponse(body []byte) (tevianApiResponse models.TevianApiResponse, err error)
 }
 
 type Repository interface {
@@ -26,7 +27,7 @@ type Repository interface {
 	ChangeFaceScannerTaskStatus(ctx context.Context, taskUUID string, statusID int) (err error)
 	DeleteFaceScannerTask(ctx context.Context, taskUUID string) (err error)
 	CreateFaceScannerTask(ctx context.Context, task models.CreateFaceScannerTaskParamsRepository) (err error)
-	UpdateTaskImageInfo(ctx context.Context, apiResponse string, taskUUID string) (err error)
+	UpdateTaskImageInfo(ctx context.Context, task models.UpdateTaskImageInfoParamsRepository) (err error)
 }
 
 func New(repository Repository, tevianRequestProvider TevianRequestProvider) *Usecase {
@@ -47,7 +48,7 @@ func (uc *Usecase) ExtendFaceScannerTask(ctx context.Context, task models.Extend
 		return scannerErrors.ErrTaskAlreadyStarted
 	}
 
-	err = fileManager.SaveFile(task.ImageUUID, task.Image)
+	fileName, err := fileManager.SaveFile(task.ImageUUID, task.Image)
 	if err != nil {
 		err = fmt.Errorf("fileManager.SaveFile(...): %w", err)
 		return err
@@ -57,6 +58,7 @@ func (uc *Usecase) ExtendFaceScannerTask(ctx context.Context, task models.Extend
 		TaskUUID:  task.TaskUUID,
 		Image:     task.Image,
 		ImageUUID: task.ImageUUID,
+		FileName:  fileName,
 	})
 	if err != nil {
 		err = fmt.Errorf("uc.repository.ExtendFaceScannerTask(...): %w", err)
@@ -67,13 +69,64 @@ func (uc *Usecase) ExtendFaceScannerTask(ctx context.Context, task models.Extend
 }
 
 func (uc *Usecase) GetFaceScannerTask(ctx context.Context, taskUUID string) (task models.GetFaceScannerTaskResponseUsecase, err error) {
+	var (
+		totalMaleCount, totalFemaleCount int
+		totalMaleAge, totalFemaleAge     float64
+	)
 	taskRepo, err := uc.repository.GetFaceScannerTask(ctx, taskUUID)
 	if err != nil {
 		err = fmt.Errorf("uc.repository.GetFaceScannerTask(...): %w", err)
 		return task, err
 	}
 
-	return taskRepo.ToUsecase(), nil
+	for _, storedData := range taskRepo.ImagesData {
+		if !storedData.ApiResponse.Valid {
+			continue
+		}
+
+		apiResponse, err := uc.tevianRequestProvider.GetResponse([]byte(storedData.ApiResponse.String))
+		if err != nil {
+			err = fmt.Errorf("uc.tevianRequestProvider.GetResponse(...): %w", err)
+			return task, err
+		}
+
+		maleCount, femaleCount := apiResponse.GetMaleFemaleCount()
+		totalMaleCount += maleCount
+		totalFemaleCount += femaleCount
+		var facesInPicture []models.Face
+
+		for _, apiData := range apiResponse.Data {
+			totalMaleAge += apiData.GetMaleAgeOrZero()
+			totalFemaleAge += apiData.GetFemaleAgeOrZero()
+
+			facesInPicture = append(facesInPicture, models.Face{
+				BoundingBox: models.BoundingBox{
+					X: apiData.BBox.X,
+					Y: apiData.BBox.Y,
+					W: apiData.BBox.Width,
+					H: apiData.BBox.Height,
+				},
+				Sex: apiData.Demographics.Gender,
+				Age: apiData.Demographics.Age.Mean,
+			})
+		}
+
+		task.ImagesData = append(task.ImagesData, models.SingleTaskPictureUsecase{
+			ApiResponse: apiResponse.BodyRaw,
+			ImageUUID:   storedData.ImageUUID,
+			Faces:       facesInPicture,
+			FileName:    storedData.FileName,
+		})
+	}
+
+	task.MaleFemaleCount = totalMaleCount + totalFemaleCount
+	task.FacesCount = totalMaleCount + totalFemaleCount
+	task.AverageMaleAge = totalMaleAge / float64(totalMaleCount)
+	task.AverageFemaleAge = totalFemaleAge / float64(totalFemaleCount)
+	task.TaskUUID = taskUUID
+	task.Status = taskRepo.Status
+
+	return task, nil
 }
 
 func (uc *Usecase) StartFaceScannerTask(ctx context.Context, taskUUID string) (err error) {
@@ -131,7 +184,11 @@ func (uc *Usecase) StartFaceScannerTask(ctx context.Context, taskUUID string) (e
 					errors = append(errors, err)
 				}
 			case apiResponse := <-responseChan:
-				err = uc.repository.UpdateTaskImageInfo(ctx, apiResponse.BodyRaw, taskUUID)
+
+				err = uc.repository.UpdateTaskImageInfo(ctx, models.UpdateTaskImageInfoParamsRepository{
+					ApiResponse: apiResponse.BodyRaw,
+					TaskUUID:    taskUUID,
+				})
 				if err != nil {
 					slog.Error(err.Error())
 				}
@@ -163,8 +220,8 @@ func (uc *Usecase) DeleteFaceScannerTask(ctx context.Context, taskUUID string) (
 		err = fmt.Errorf("uc.repository.GetFaceScannerTask(...): %w", err)
 		return err
 	}
-	for i := 0; i < len(taskRepo.ImagesData); i++ {
-		err = fileManager.DeleteFile(taskRepo.ImagesData[i].ImageUUID)
+	for _, storedData := range taskRepo.ImagesData {
+		err = fileManager.DeleteFile(storedData.ImageUUID)
 		if err != nil {
 			err = fmt.Errorf("fileManager.DeleteFile(...): %w", err)
 			return err
@@ -179,7 +236,7 @@ func (uc *Usecase) DeleteFaceScannerTask(ctx context.Context, taskUUID string) (
 	return nil
 }
 func (uc *Usecase) CreateFaceScannerTask(ctx context.Context, task models.CreateFaceScannerTaskParamsUsecase) (err error) {
-	err = fileManager.SaveFile(task.ImageUUID, task.Image)
+	fileName, err := fileManager.SaveFile(task.ImageUUID, task.Image)
 	if err != nil {
 		err = fmt.Errorf("fileManager.SaveFile(...): %w", err)
 		return err
@@ -189,6 +246,7 @@ func (uc *Usecase) CreateFaceScannerTask(ctx context.Context, task models.Create
 		TaskUUID:  task.TaskUUID,
 		Image:     task.Image,
 		ImageUUID: task.ImageUUID,
+		FileName:  fileName,
 	})
 	if err != nil {
 		err = fmt.Errorf("uc.repository.CreateFaceScannerTask(...): %w", err)

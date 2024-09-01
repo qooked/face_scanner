@@ -23,10 +23,10 @@ func New(db *sqlx.DB) *Repository {
 	}
 }
 
-const queryExtendFaceScannerTask = `insert into public.image_tasks (task_id, image_data, image_id) values ($1, $2, $3)`
+const queryExtendFaceScannerTask = `insert into public.image_tasks (task_id, image_data, image_id, file_name) values ($1, $2, $3, $4)`
 
 func (r *Repository) ExtendFaceScannerTask(ctx context.Context, task models.ExtendFaceScannerTaskParamsRepository) (err error) {
-	_, err = r.db.ExecContext(ctx, queryExtendFaceScannerTask, task.TaskUUID, task.Image, task.ImageUUID)
+	_, err = r.db.ExecContext(ctx, queryExtendFaceScannerTask, task.TaskUUID, task.Image, task.ImageUUID, task.FileName)
 	if err != nil {
 		err = fmt.Errorf("r.db.ExecContext(...): %w", err)
 		return err
@@ -35,7 +35,7 @@ func (r *Repository) ExtendFaceScannerTask(ctx context.Context, task models.Exte
 	return nil
 }
 
-const queryGetFaceScannerTaskData = `select image_data, api_response, image_id from public.image_tasks where task_id = $1`
+const queryGetFaceScannerTaskData = `select image_data, api_response, image_id, file_name from public.image_tasks where task_id = $1`
 const queryGetFaceScannerTask = `select id, status from public.tasks where id = $1`
 
 func (r *Repository) GetFaceScannerTask(ctx context.Context, taskUUID string) (task models.GetFaceScannerTaskResponseRepository, err error) {
@@ -117,7 +117,7 @@ func (r *Repository) DeleteFaceScannerTask(ctx context.Context, taskUUID string)
 }
 
 const queryCreateFaceScannerTask = `insert into public.tasks (id, status) values ($1, $2)`
-const queryCreateFaceScannerTaskImage = `insert into public.image_tasks (task_id, image_data, image_id) values ($1, $2, $3)`
+const queryCreateFaceScannerTaskImage = `insert into public.image_tasks (task_id, image_data, image_id, file_name) values ($1, $2, $3, $4)`
 
 func (r *Repository) CreateFaceScannerTask(ctx context.Context, task models.CreateFaceScannerTaskParamsRepository) (err error) {
 	eg, ctx := errgroup.WithContext(ctx)
@@ -141,7 +141,7 @@ func (r *Repository) CreateFaceScannerTask(ctx context.Context, task models.Crea
 		return nil
 	})
 	eg.Go(func() error {
-		_, err = tx.ExecContext(ctx, queryCreateFaceScannerTaskImage, task.TaskUUID, task.Image, task.ImageUUID)
+		_, err = tx.ExecContext(ctx, queryCreateFaceScannerTaskImage, task.TaskUUID, task.Image, task.ImageUUID, task.FileName)
 		if err != nil {
 			err = fmt.Errorf("r.db.ExecContext(...): %w", err)
 			return err
@@ -165,8 +165,8 @@ func (r *Repository) CreateFaceScannerTask(ctx context.Context, task models.Crea
 
 const queryUpdateTaskImageInfo = `update public.image_tasks set api_response = $1 where task_id = $2`
 
-func (r *Repository) UpdateTaskImageInfo(ctx context.Context, apiResponse string, taskUUID string) (err error) {
-	_, err = r.db.ExecContext(ctx, queryUpdateTaskImageInfo, apiResponse, taskUUID)
+func (r *Repository) UpdateTaskImageInfo(ctx context.Context, task models.UpdateTaskImageInfoParamsRepository) (err error) {
+	_, err = r.db.ExecContext(ctx, queryUpdateTaskImageInfo, task.ApiResponse, task.TaskUUID)
 	if err != nil {
 		err = fmt.Errorf("r.db.SelectContext(...): %w", err)
 		return err

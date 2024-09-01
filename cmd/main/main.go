@@ -47,7 +47,6 @@ func main() {
 	)
 
 	tevianRequestProvider := tevianAPI.NewTevianProvider(cfg.FaceScanAPI.URL, cfg.FaceScanAPI.Authorization, cfg.FaceScanAPI.MimeType)
-	fmt.Println(cfg.FaceScanAPI.URL, cfg.FaceScanAPI.Authorization, cfg.FaceScanAPI.MimeType)
 	repo := repository.New(postgres)
 	uc := usecase.New(repo, tevianRequestProvider)
 

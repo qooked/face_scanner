@@ -119,11 +119,33 @@ type GetFaceScannerTaskResponse struct {
 	TaskUUID   string              `json:"taskUUID"`
 	Status     int                 `json:"status"`
 	ImagesData []SingleTaskPicture `json:"imagesData"`
+	Stats      Stats               `json:"stats"`
 }
 
 type SingleTaskPicture struct {
 	ApiResponse string `json:"apiResponse"`
 	ImageUUID   string `json:"imageUUID"`
+	FileName    string `json:"fileName"`
+	Faces       []Face `json:"face"`
+}
+
+type Stats struct {
+	FacesCount       int `json:"facesCount"`
+	MaleFemaleCount  int `json:"maleFemaleCount"`
+	AverageMaleAge   int `json:"averageMaleAge"`
+	AverageFemaleAge int `json:"averageFemaleAge"`
+}
+type Face struct {
+	BoundingBox `json:"boundingBox"`
+	Sex         string  `json:"sex"`
+	Age         float64 `json:"age"`
+}
+
+type BoundingBox struct {
+	X int `json:"x"`
+	Y int `json:"y"`
+	W int `json:"w"`
+	H int `json:"h"`
 }
 
 func (h *FaceScannerHandlers) GetFaceScannerTask(c *fiber.Ctx) error {
@@ -145,10 +167,33 @@ func (h *FaceScannerHandlers) GetFaceScannerTask(c *fiber.Ctx) error {
 
 	response.TaskUUID = task.TaskUUID
 	response.Status = task.Status
-	for i := 0; i < len(task.ImagesData); i++ {
+	response.Stats.FacesCount = task.FacesCount
+	response.Stats.MaleFemaleCount = task.MaleFemaleCount
+	response.Stats.AverageFemaleAge = int(task.AverageFemaleAge)
+	response.Stats.AverageMaleAge = int(task.AverageMaleAge)
+	for _, image := range task.ImagesData {
+
+		var faces []Face
+		for _, face := range image.Faces {
+			singleBoundingBox := BoundingBox{
+				X: face.BoundingBox.X,
+				Y: face.BoundingBox.Y,
+				W: face.BoundingBox.W,
+				H: face.BoundingBox.H,
+			}
+
+			faces = append(faces, Face{
+				BoundingBox: singleBoundingBox,
+				Sex:         face.Sex,
+				Age:         face.Age,
+			})
+		}
+
 		response.ImagesData = append(response.ImagesData, SingleTaskPicture{
-			ApiResponse: task.ImagesData[i].ApiResponse,
-			ImageUUID:   task.ImagesData[i].ImageUUID,
+			ApiResponse: image.ApiResponse,
+			ImageUUID:   image.ImageUUID,
+			Faces:       faces,
+			FileName:    image.FileName,
 		})
 	}
 

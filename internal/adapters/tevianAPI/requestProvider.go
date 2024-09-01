@@ -13,6 +13,7 @@ import (
 const (
 	OrientationClassifier = "orientation_classifier"
 	RotateUntilFacesFound = "rotate_until_faces_found"
+	Demographics          = "demographics"
 )
 
 type TevianApiProvider struct {
@@ -64,6 +65,7 @@ func (p *TevianApiProvider) ProvideRequest(image []byte) (tevianApiResponse mode
 		return tevianApiResponse, err
 	}
 
+	fmt.Println(string(response.Body()))
 	if response.StatusCode() != 200 {
 		err = fmt.Errorf("response.StatusCode() != 200")
 		return tevianApiResponse, err
@@ -82,6 +84,7 @@ func (p *TevianApiProvider) GetURL() (string, error) {
 	values := url.Values{}
 	values.Add(OrientationClassifier, "true")
 	values.Add(RotateUntilFacesFound, "true")
+	values.Add(Demographics, "true")
 
 	parsedURL, err := url.Parse(p.URL)
 	if err != nil {
@@ -91,4 +94,15 @@ func (p *TevianApiProvider) GetURL() (string, error) {
 	parsedURL.RawQuery = values.Encode()
 
 	return parsedURL.String(), nil
+}
+
+func (p *TevianApiProvider) GetResponse(body []byte) (tevianApiResponse models.TevianApiResponse, err error) {
+
+	err = json.Unmarshal(body, &tevianApiResponse)
+	if err != nil {
+		err = fmt.Errorf("json.Unmarshal(...): %w", err)
+		return tevianApiResponse, err
+	}
+	tevianApiResponse.BodyRaw = string(body)
+	return tevianApiResponse, err
 }

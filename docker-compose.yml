@@ -1,0 +1,19 @@
+version: "3"
+
+services:
+  postgres:
+    image: postgres
+    container_name: scanner_postgres
+    ports:
+      - "5400:5432"
+    environment:
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=aboba
+      - POSTGRES_DB=public
+  faceSanner:
+    image: face_scanner:1.0
+    container_name: face_scanner
+    ports:
+      - "50051:50051"
+    depends_on:
+      - postgres

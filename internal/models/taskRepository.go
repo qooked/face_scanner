@@ -11,16 +11,19 @@ type GetFaceScannerTaskResponseRepository struct {
 type SingleTaskPictureRepository struct {
 	ImageData   []byte      `db:"image_data"`
 	ApiResponse null.String `db:"api_response"`
+	ImageUUID   string      `db:"image_id"`
 }
 
 type ExtendFaceScannerTaskParamsRepository struct {
-	TaskUUID string
-	Image    []byte
+	TaskUUID  string
+	Image     []byte
+	ImageUUID string
 }
 
 type CreateFaceScannerTaskParamsRepository struct {
-	TaskUUID string
-	Image    []byte
+	TaskUUID  string
+	Image     []byte
+	ImageUUID string
 }
 
 func (t *GetFaceScannerTaskResponseRepository) ToUsecase() GetFaceScannerTaskResponseUsecase {
@@ -31,6 +34,7 @@ func (t *GetFaceScannerTaskResponseRepository) ToUsecase() GetFaceScannerTaskRes
 		imagesData = append(imagesData, SingleTaskPictureUsecase{
 			ImageData:   image.ImageData,
 			ApiResponse: image.ApiResponse.String,
+			ImageUUID:   image.ImageUUID,
 		})
 	}
 	return GetFaceScannerTaskResponseUsecase{

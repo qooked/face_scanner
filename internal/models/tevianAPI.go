@@ -9,13 +9,20 @@ type TevianApiResponse struct {
 
 type FaceData struct {
 	Attributes   Attributes   `json:"attributes"`
-	BBox         string       `json:"bbox"`
+	BBox         BBox         `json:"bbox"`
 	Demographics Demographics `json:"demographics"`
 	Landmarks    []Landmark   `json:"landmarks"`
 	Liveness     int          `json:"liveness"`
 	Masks        Masks        `json:"masks"`
 	Quality      Quality      `json:"quality"`
-	Score        int          `json:"score"`
+	Score        float64      `json:"score"`
+}
+
+type BBox struct {
+	Height int `json:"height"`
+	Width  int `json:"width"`
+	X      int `json:"x"`
+	Y      int `json:"y"`
 }
 
 type Attributes struct {

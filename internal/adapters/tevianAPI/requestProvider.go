@@ -1,16 +1,25 @@
 package tevianAPI
 
 import (
+	"context"
 	"encoding/json"
 	"faceScanner/internal/models"
 	"fmt"
 	"github.com/valyala/fasthttp"
+	"golang.org/x/time/rate"
+	"net/url"
+)
+
+const (
+	OrientationClassifier = "orientation_classifier"
+	RotateUntilFacesFound = "rotate_until_faces_found"
 )
 
 type TevianApiProvider struct {
 	URL           string
 	Authorization string
 	Mimetype      string
+	RateLimiter   *rate.Limiter
 }
 
 func NewTevianProvider(url, authorization, mimetype string) *TevianApiProvider {
@@ -18,12 +27,21 @@ func NewTevianProvider(url, authorization, mimetype string) *TevianApiProvider {
 		URL:           url,
 		Authorization: authorization,
 		Mimetype:      mimetype,
+		RateLimiter:   rate.NewLimiter(1, 1),
 	}
 }
-func (p *TevianApiProvider) ProvideRequest(image []byte) (tevianApiResponse models.TevianApiResponse, err error) {
 
-	request := fasthttp.AcquireRequest()
-	response := fasthttp.AcquireResponse()
+func (p *TevianApiProvider) ProvideRequest(image []byte) (tevianApiResponse models.TevianApiResponse, err error) {
+	var (
+		request  = fasthttp.AcquireRequest()
+		response = fasthttp.AcquireResponse()
+	)
+
+	requestURL, err := p.GetURL()
+	if err != nil {
+		err = fmt.Errorf("p.GetURL(): %w", err)
+		return tevianApiResponse, err
+	}
 
 	defer fasthttp.ReleaseRequest(request)
 
@@ -31,17 +49,20 @@ func (p *TevianApiProvider) ProvideRequest(image []byte) (tevianApiResponse mode
 	request.Header.Set("Accept", p.Mimetype)
 	request.Header.SetMethod("POST")
 	request.Header.SetContentType(p.Mimetype)
-	fmt.Println("", p.Mimetype)
 	request.SetBody(image)
-	request.SetRequestURI(p.URL)
+	request.SetRequestURI(requestURL)
+
+	err = p.RateLimiter.Wait(context.Background())
+	if err != nil {
+		err = fmt.Errorf("p.RateLimiter.Wait(...): %w", err)
+		return tevianApiResponse, err
+	}
 
 	client := &fasthttp.Client{}
 	if err = client.Do(request, response); err != nil {
 		err = fmt.Errorf("client.Do(...): %w", err)
 		return tevianApiResponse, err
 	}
-
-	fmt.Println(string(response.Body()))
 
 	if response.StatusCode() != 200 {
 		err = fmt.Errorf("response.StatusCode() != 200")
@@ -55,4 +76,19 @@ func (p *TevianApiProvider) ProvideRequest(image []byte) (tevianApiResponse mode
 	}
 	tevianApiResponse.BodyRaw = string(response.Body())
 	return tevianApiResponse, err
+}
+
+func (p *TevianApiProvider) GetURL() (string, error) {
+	values := url.Values{}
+	values.Add(OrientationClassifier, "true")
+	values.Add(RotateUntilFacesFound, "true")
+
+	parsedURL, err := url.Parse(p.URL)
+	if err != nil {
+		err = fmt.Errorf("url.Parse(...): %w", err)
+		return "", err
+	}
+	parsedURL.RawQuery = values.Encode()
+
+	return parsedURL.String(), nil
 }

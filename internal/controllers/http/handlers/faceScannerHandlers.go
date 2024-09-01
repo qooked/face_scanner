@@ -32,36 +32,46 @@ func NewFaceScannerHandlers(
 }
 
 type CreateFaceScannerTaskResponse struct {
-	TaskUUID string `json:"task_uuid"`
+	TaskUUID  string `json:"task_uuid"`
+	ImageUUID string `json:"image_uuid"`
 }
 
 func (h *FaceScannerHandlers) CreateFaceScannerTask(c *fiber.Ctx) error {
 	var (
 		taskUUID  = uuid.New().String()
+		imageUUID = uuid.New().String()
 		imageData = c.Body()
+		response  CreateFaceScannerTaskResponse
 	)
 
-	if c.Get("Content-Type") != "image/jpeg" {
-		return c.Status(fiber.StatusBadRequest).SendString("Invalid content type")
+	if c.Get(fiber.HeaderContentType) != "image/jpeg" {
+		return c.Status(fiber.StatusBadRequest).
+			SendString("Invalid content type")
 	}
 
 	err := h.faceScannerUsecase.CreateFaceScannerTask(
 		c.UserContext(),
 		models.CreateFaceScannerTaskParamsUsecase{
-			Image:    imageData,
-			TaskUUID: taskUUID,
+			Image:     imageData,
+			TaskUUID:  taskUUID,
+			ImageUUID: imageUUID,
 		},
 	)
 	if err != nil {
 		if errors.Is(err, scannerErrors.ErrDuplicateTask) {
-			return c.Status(fiber.StatusConflict).SendString("Task already created")
+			return c.Status(fiber.StatusConflict).
+				SendString("Task already created")
 		}
-		err = fmt.Errorf("h.faceScannerUsecase.ExtendFaceScannerTask(...): %w", err)
+		err = fmt.Errorf("h.faceScannerUsecase.CreateFaceScannerTask(...): %w", err)
 		slog.Error(err.Error())
 		return c.SendStatus(fiber.StatusInternalServerError)
 	}
 
-	return c.Status(fiber.StatusOK).JSON(CreateFaceScannerTaskResponse{TaskUUID: taskUUID})
+	response.ImageUUID = imageUUID
+	response.TaskUUID = taskUUID
+
+	return c.Status(fiber.StatusOK).
+		JSON(response)
 }
 
 type ExtendFaceScannerTaskParams struct {
@@ -72,6 +82,7 @@ type ExtendFaceScannerTaskParams struct {
 func (h *FaceScannerHandlers) ExtendFaceScannerTask(c *fiber.Ctx) error {
 	var (
 		imageData = c.Body()
+		imageUUID = uuid.New().String()
 	)
 	taskUUID := c.Params("taskUUID")
 	if taskUUID == "" {
@@ -84,8 +95,9 @@ func (h *FaceScannerHandlers) ExtendFaceScannerTask(c *fiber.Ctx) error {
 	err := h.faceScannerUsecase.ExtendFaceScannerTask(
 		c.UserContext(),
 		models.ExtendFaceScannerTaskUsecase{
-			Image:    imageData,
-			TaskUUID: taskUUID,
+			Image:     imageData,
+			TaskUUID:  taskUUID,
+			ImageUUID: imageUUID,
 		},
 	)
 	if err != nil {
@@ -110,8 +122,8 @@ type GetFaceScannerTaskResponse struct {
 }
 
 type SingleTaskPicture struct {
-	ImageData   []byte `json:"imageData"`
 	ApiResponse string `json:"apiResponse"`
+	ImageUUID   string `json:"imageUUID"`
 }
 
 func (h *FaceScannerHandlers) GetFaceScannerTask(c *fiber.Ctx) error {
@@ -135,8 +147,8 @@ func (h *FaceScannerHandlers) GetFaceScannerTask(c *fiber.Ctx) error {
 	response.Status = task.Status
 	for i := 0; i < len(task.ImagesData); i++ {
 		response.ImagesData = append(response.ImagesData, SingleTaskPicture{
-			ImageData:   task.ImagesData[i].ImageData,
 			ApiResponse: task.ImagesData[i].ApiResponse,
+			ImageUUID:   task.ImagesData[i].ImageUUID,
 		})
 	}
 

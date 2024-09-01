@@ -5,6 +5,7 @@ import (
 	"faceScanner/internal/constants"
 	scannerErrors "faceScanner/internal/errors"
 	"faceScanner/internal/models"
+	"faceScanner/pkg/fileManager"
 	"fmt"
 	"log/slog"
 	"sync"
@@ -41,13 +42,21 @@ func (uc *Usecase) ExtendFaceScannerTask(ctx context.Context, task models.Extend
 		err = fmt.Errorf("uc.repository.GetFaceScannerTask(...): %w", err)
 		return err
 	}
+
 	if taskRepo.Status != constants.StatusNew {
 		return scannerErrors.ErrTaskAlreadyStarted
 	}
 
+	err = fileManager.SaveFile(task.ImageUUID, task.Image)
+	if err != nil {
+		err = fmt.Errorf("fileManager.SaveFile(...): %w", err)
+		return err
+	}
+
 	err = uc.repository.ExtendFaceScannerTask(ctx, models.ExtendFaceScannerTaskParamsRepository{
-		TaskUUID: task.TaskUUID,
-		Image:    task.Image,
+		TaskUUID:  task.TaskUUID,
+		Image:     task.Image,
+		ImageUUID: task.ImageUUID,
 	})
 	if err != nil {
 		err = fmt.Errorf("uc.repository.ExtendFaceScannerTask(...): %w", err)
@@ -148,6 +157,19 @@ func (uc *Usecase) StartFaceScannerTask(ctx context.Context, taskUUID string) (e
 	return err
 }
 func (uc *Usecase) DeleteFaceScannerTask(ctx context.Context, taskUUID string) (err error) {
+
+	taskRepo, err := uc.repository.GetFaceScannerTask(ctx, taskUUID)
+	if err != nil {
+		err = fmt.Errorf("uc.repository.GetFaceScannerTask(...): %w", err)
+		return err
+	}
+	for i := 0; i < len(taskRepo.ImagesData); i++ {
+		err = fileManager.DeleteFile(taskRepo.ImagesData[i].ImageUUID)
+		if err != nil {
+			err = fmt.Errorf("fileManager.DeleteFile(...): %w", err)
+			return err
+		}
+	}
 	err = uc.repository.DeleteFaceScannerTask(ctx, taskUUID)
 	if err != nil {
 		err = fmt.Errorf("uc.repository.DeleteFaceScannerTask(...): %w", err)
@@ -157,9 +179,16 @@ func (uc *Usecase) DeleteFaceScannerTask(ctx context.Context, taskUUID string) (
 	return nil
 }
 func (uc *Usecase) CreateFaceScannerTask(ctx context.Context, task models.CreateFaceScannerTaskParamsUsecase) (err error) {
+	err = fileManager.SaveFile(task.ImageUUID, task.Image)
+	if err != nil {
+		err = fmt.Errorf("fileManager.SaveFile(...): %w", err)
+		return err
+	}
+
 	err = uc.repository.CreateFaceScannerTask(ctx, models.CreateFaceScannerTaskParamsRepository{
-		TaskUUID: task.TaskUUID,
-		Image:    task.Image,
+		TaskUUID:  task.TaskUUID,
+		Image:     task.Image,
+		ImageUUID: task.ImageUUID,
 	})
 	if err != nil {
 		err = fmt.Errorf("uc.repository.CreateFaceScannerTask(...): %w", err)

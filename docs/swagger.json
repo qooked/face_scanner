@@ -1,0 +1,386 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "Документация к сервису по распознаванию лиц",
+        "title": "Face Scanner",
+        "contact": {},
+        "version": "1.0"
+    },
+    "host": "localhost:8080",
+    "basePath": "/task",
+    "paths": {
+        "/create": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "image/jpeg"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "api"
+                ],
+                "summary": "Создание задания для распознавания лиц.",
+                "parameters": [
+                    {
+                        "description": "Параметры задания",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.CreateFaceScannerTaskParams"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.CreateFaceScannerTaskResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/delete/{taskUUID}": {
+            "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "api"
+                ],
+                "summary": "Удаление задания на распознавание лиц.",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "UUID задания",
+                        "name": "taskUUID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/extend/{taskUUID}": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "image/jpeg"
+                ],
+                "produces": [
+                    "image/jpeg"
+                ],
+                "tags": [
+                    "api"
+                ],
+                "summary": "Добавление файлов в задание.",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "UUID задания",
+                        "name": "taskUUID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Параметры для расширения задания",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ExtendFaceScannerTaskParams"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/get/{taskUUID}": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "api"
+                ],
+                "summary": "Получение данных по заданию.",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "UUID задания",
+                        "name": "taskUUID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.GetFaceScannerTaskResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/start/{taskUUID}": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "api"
+                ],
+                "summary": "Запуск задания на распознавание лиц.",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "UUID задания",
+                        "name": "taskUUID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "handlers.BoundingBox": {
+            "type": "object",
+            "properties": {
+                "h": {
+                    "type": "integer"
+                },
+                "w": {
+                    "type": "integer"
+                },
+                "x": {
+                    "type": "integer"
+                },
+                "y": {
+                    "type": "integer"
+                }
+            }
+        },
+        "handlers.CreateFaceScannerTaskParams": {
+            "type": "object",
+            "properties": {
+                "image": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                }
+            }
+        },
+        "handlers.CreateFaceScannerTaskResponse": {
+            "type": "object",
+            "properties": {
+                "image_uuid": {
+                    "type": "string"
+                },
+                "task_uuid": {
+                    "type": "string"
+                }
+            }
+        },
+        "handlers.ExtendFaceScannerTaskParams": {
+            "type": "object",
+            "properties": {
+                "image": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                }
+            }
+        },
+        "handlers.Face": {
+            "type": "object",
+            "properties": {
+                "age": {
+                    "type": "number"
+                },
+                "boundingBox": {
+                    "$ref": "#/definitions/handlers.BoundingBox"
+                },
+                "sex": {
+                    "type": "string"
+                }
+            }
+        },
+        "handlers.GetFaceScannerTaskResponse": {
+            "type": "object",
+            "properties": {
+                "imagesData": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handlers.SingleTaskPicture"
+                    }
+                },
+                "stats": {
+                    "$ref": "#/definitions/handlers.Stats"
+                },
+                "status": {
+                    "type": "integer"
+                },
+                "taskUUID": {
+                    "type": "string"
+                }
+            }
+        },
+        "handlers.SingleTaskPicture": {
+            "type": "object",
+            "properties": {
+                "apiResponse": {
+                    "type": "string"
+                },
+                "face": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handlers.Face"
+                    }
+                },
+                "fileName": {
+                    "type": "string"
+                },
+                "imageUUID": {
+                    "type": "string"
+                }
+            }
+        },
+        "handlers.Stats": {
+            "type": "object",
+            "properties": {
+                "averageFemaleAge": {
+                    "type": "integer"
+                },
+                "averageMaleAge": {
+                    "type": "integer"
+                },
+                "facesCount": {
+                    "type": "integer"
+                },
+                "maleFemaleCount": {
+                    "type": "integer"
+                }
+            }
+        }
+    },
+    "securityDefinitions": {
+        "ApiKeyAuth": {
+            "description": "Ключ который выставляется в переменных окружения",
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
+        }
+    }
+}

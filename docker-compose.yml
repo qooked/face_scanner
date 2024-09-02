@@ -1,19 +1,53 @@
-version: "3"
+version: "3.9"
 
 services:
   postgres:
-    image: postgres
+    image: postgres:latest
     container_name: scanner_postgres
     ports:
-      - "5400:5432"
+      - "5432:5432"
     environment:
       - POSTGRES_USER=root
-      - POSTGRES_PASSWORD=aboba
-      - POSTGRES_DB=public
-  faceSanner:
+      - POSTGRES_PASSWORD=abiba
+    volumes:
+      - ./initdb:/docker-entrypoint-initdb.d
+    networks:
+      - app_network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U root" ]
+      interval: 1s
+      retries: 5
+
+  faceScanner:
+    build:
+      context: .
+      dockerfile: dockerfile
     image: face_scanner:1.0
     container_name: face_scanner
     ports:
-      - "50051:50051"
+      - "8080:8080"
+    environment:
+      - SERVER_HOST=0.0.0.0
+      - SERVER_PORT=8080
+      - SERVER_AUTHORIZATION_KEY=my-authorization-key
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=abiba
+      - POSTGRES_DATABASE_NAME=face_scanner
+      - POSTGRES_SSL_MODE=disable
+      - FACE_SCAN_API_URL=https://backend.facecloud.tevian.ru/api/v1/detect
+      - FACE_SCAN_API_AUTHORIZATION_KEY=Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE3MjUxMjQ0ODMsIm5iZiI6MTcyNTEyNDQ4MywianRpIjoiYTdkMzQwNDUtYzY2MC00NTY3LTkwZTYtYjAyZmFiNjAwZTU2Iiwic3ViIjo0NjIsImZyZXNoIjpmYWxzZSwidHlwZSI6ImFjY2VzcyJ9.juOEpCjilG5Xv4PqomzjTdK3nCsmyO73TdhyKi1RV8U
+      - FACE_SCAN_API_MIME_TYPE=image/jpeg
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
+    networks:
+      - app_network
+
+volumes:
+  postgres_data:
+
+networks:
+  app_network:
+    driver: bridge

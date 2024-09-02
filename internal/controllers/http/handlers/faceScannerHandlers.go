@@ -31,11 +31,26 @@ func NewFaceScannerHandlers(
 	}
 }
 
+type CreateFaceScannerTaskParams struct {
+	Image []byte `json:"image" swaggerType:"image"`
+}
+
 type CreateFaceScannerTaskResponse struct {
 	TaskUUID  string `json:"task_uuid"`
 	ImageUUID string `json:"image_uuid"`
 }
 
+// CreateFaceScannerTask godoc
+// @Summary         Создание задания для распознавания лиц.
+// @Tags            api
+// @Accept          jpeg
+// @Produce         json
+// @Security        ApiKeyAuth
+// @Param           request body CreateFaceScannerTaskParams true "Параметры задания"
+// @Success         200 {object} CreateFaceScannerTaskResponse
+// @Failure         400 {string} string "Invalid request"
+// @Failure         500 {string} string "Internal Server Error"
+// @Router          /create [post]
 func (h *FaceScannerHandlers) CreateFaceScannerTask(c *fiber.Ctx) error {
 	var (
 		taskUUID  = uuid.New().String()
@@ -75,10 +90,22 @@ func (h *FaceScannerHandlers) CreateFaceScannerTask(c *fiber.Ctx) error {
 }
 
 type ExtendFaceScannerTaskParams struct {
-	Image    []byte `json:"image"`
-	TaskUUID string
+	Image    []byte `json:"image" swaggerType:"image"`
+	TaskUUID string `json:"-"`
 }
 
+// ExtendFaceScannerTask godoc
+// @Summary         Добавление файлов в задание.
+// @Tags            api
+// @Accept          jpeg
+// @Produce         jpeg
+// @Security        ApiKeyAuth
+// @Param           taskUUID path string true "UUID задания"
+// @Param           request body ExtendFaceScannerTaskParams true "Параметры для расширения задания"
+// @Success         200
+// @Failure         400 {string} string "Bad request"
+// @Failure         500 {string} string "Internal Server Error"
+// @Router          /extend/{taskUUID} [post]
 func (h *FaceScannerHandlers) ExtendFaceScannerTask(c *fiber.Ctx) error {
 	var (
 		imageData = c.Body()
@@ -148,6 +175,17 @@ type BoundingBox struct {
 	H int `json:"h"`
 }
 
+// GetFaceScannerTask godoc
+// @Summary         Получение данных по заданию.
+// @Tags            api
+// @Accept          json
+// @Produce         json
+// @Security        ApiKeyAuth
+// @Param           taskUUID path string true "UUID задания"
+// @Success         200 {object} GetFaceScannerTaskResponse
+// @Failure         400 {string} string "Bad request"
+// @Failure         500 {string} string "Internal Server Error"
+// @Router          /get/{taskUUID} [get]
 func (h *FaceScannerHandlers) GetFaceScannerTask(c *fiber.Ctx) error {
 	var response GetFaceScannerTaskResponse
 
@@ -200,6 +238,17 @@ func (h *FaceScannerHandlers) GetFaceScannerTask(c *fiber.Ctx) error {
 	return c.JSON(response)
 }
 
+// StartFaceScannerTask godoc
+// @Summary         Запуск задания на распознавание лиц.
+// @Tags            api
+// @Accept          json
+// @Produce         json
+// @Security        ApiKeyAuth
+// @Param           taskUUID path string true "UUID задания"
+// @Success         200
+// @Failure         400 {string} string "Bad request"
+// @Failure         500 {string} string "Internal Server Error"
+// @Router          /start/{taskUUID} [get]
 func (h *FaceScannerHandlers) StartFaceScannerTask(c *fiber.Ctx) error {
 	taskUUID := c.Params("taskUUID")
 	if taskUUID == "" {
@@ -223,6 +272,18 @@ func (h *FaceScannerHandlers) StartFaceScannerTask(c *fiber.Ctx) error {
 
 	return c.SendStatus(fiber.StatusOK)
 }
+
+// DeleteFaceScannerTask godoc
+// @Summary         Удаление задания на распознавание лиц.
+// @Tags            api
+// @Accept          json
+// @Produce         json
+// @Security        ApiKeyAuth
+// @Param           taskUUID path string true "UUID задания"
+// @Success         200
+// @Failure         400 {string} string "Bad request"
+// @Failure         500 {string} string "Internal Server Error"
+// @Router          /delete/{taskUUID} [delete]
 func (h *FaceScannerHandlers) DeleteFaceScannerTask(c *fiber.Ctx) error {
 	taskUUID := c.Params("taskUUID")
 	if taskUUID == "" {

@@ -82,5 +82,5 @@ func (s *Server) AttachHandlers(ctx context.Context, taskUsecase Usecase) {
 	taskHandlers := handlers.NewFaceScannerHandlers(
 		taskUsecase)
 
-	routes.AttachCascadeRoutes(taskGroup, taskHandlers)
+	routes.AttachTaskRoutes(taskGroup, taskHandlers)
 }

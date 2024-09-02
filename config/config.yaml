@@ -1,12 +1,12 @@
 server:
-  server_host: 127.0.0.1
+  server_host: 0.0.0.0
   server_port: 8080
   server_authorization_key: aboba
 postgres:
-  postgres_host: localhost
+  postgres_host: postgres
   postgres_port: 5432
   postgres_user: root
-  postgres_password: f7kmXohh
+  postgres_password: abiba
   postgres_database_name: face_scanner
   postgres_ssl_mode: disable
 face_scan_api:

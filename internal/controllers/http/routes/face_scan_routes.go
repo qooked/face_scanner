@@ -12,7 +12,20 @@ type FaceScanHandlers interface {
 	CreateFaceScannerTask(c *fiber.Ctx) error
 }
 
-func AttachCascadeRoutes(router fiber.Router, handlers FaceScanHandlers) {
+// AttachTaskRoutes
+//
+//	@title						Face Scanner
+//	@version					1.0
+//	@description				Документация к сервису по распознаванию лиц
+//
+//
+//	@host						localhost:8080
+//	@BasePath					/task
+//	@securityDefinitions.apikey	ApiKeyAuth
+//	@in							header
+//	@name						Authorization
+//	@description				Ключ который выставляется в переменных окружения
+func AttachTaskRoutes(router fiber.Router, handlers FaceScanHandlers) {
 
 	router.Post("/extend/:taskUUID", handlers.ExtendFaceScannerTask)
 	router.Get("/get/:taskUUID", handlers.GetFaceScannerTask)

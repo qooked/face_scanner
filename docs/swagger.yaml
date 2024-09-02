@@ -1,0 +1,245 @@
+basePath: /task
+definitions:
+  handlers.BoundingBox:
+    properties:
+      h:
+        type: integer
+      w:
+        type: integer
+      x:
+        type: integer
+      "y":
+        type: integer
+    type: object
+  handlers.CreateFaceScannerTaskParams:
+    properties:
+      image:
+        items:
+          type: integer
+        type: array
+    type: object
+  handlers.CreateFaceScannerTaskResponse:
+    properties:
+      image_uuid:
+        type: string
+      task_uuid:
+        type: string
+    type: object
+  handlers.ExtendFaceScannerTaskParams:
+    properties:
+      image:
+        items:
+          type: integer
+        type: array
+    type: object
+  handlers.Face:
+    properties:
+      age:
+        type: number
+      boundingBox:
+        $ref: '#/definitions/handlers.BoundingBox'
+      sex:
+        type: string
+    type: object
+  handlers.GetFaceScannerTaskResponse:
+    properties:
+      imagesData:
+        items:
+          $ref: '#/definitions/handlers.SingleTaskPicture'
+        type: array
+      stats:
+        $ref: '#/definitions/handlers.Stats'
+      status:
+        type: integer
+      taskUUID:
+        type: string
+    type: object
+  handlers.SingleTaskPicture:
+    properties:
+      apiResponse:
+        type: string
+      face:
+        items:
+          $ref: '#/definitions/handlers.Face'
+        type: array
+      fileName:
+        type: string
+      imageUUID:
+        type: string
+    type: object
+  handlers.Stats:
+    properties:
+      averageFemaleAge:
+        type: integer
+      averageMaleAge:
+        type: integer
+      facesCount:
+        type: integer
+      maleFemaleCount:
+        type: integer
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: Документация к сервису по распознаванию лиц
+  title: Face Scanner
+  version: "1.0"
+paths:
+  /create:
+    post:
+      consumes:
+      - image/jpeg
+      parameters:
+      - description: Параметры задания
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.CreateFaceScannerTaskParams'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.CreateFaceScannerTaskResponse'
+        "400":
+          description: Invalid request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Создание задания для распознавания лиц.
+      tags:
+      - api
+  /delete/{taskUUID}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: UUID задания
+        in: path
+        name: taskUUID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Удаление задания на распознавание лиц.
+      tags:
+      - api
+  /extend/{taskUUID}:
+    post:
+      consumes:
+      - image/jpeg
+      parameters:
+      - description: UUID задания
+        in: path
+        name: taskUUID
+        required: true
+        type: string
+      - description: Параметры для расширения задания
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.ExtendFaceScannerTaskParams'
+      produces:
+      - image/jpeg
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Добавление файлов в задание.
+      tags:
+      - api
+  /get/{taskUUID}:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: UUID задания
+        in: path
+        name: taskUUID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.GetFaceScannerTaskResponse'
+        "400":
+          description: Bad request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Получение данных по заданию.
+      tags:
+      - api
+  /start/{taskUUID}:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: UUID задания
+        in: path
+        name: taskUUID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Запуск задания на распознавание лиц.
+      tags:
+      - api
+securityDefinitions:
+  ApiKeyAuth:
+    description: Ключ который выставляется в переменных окружения
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

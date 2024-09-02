@@ -20,7 +20,5 @@ COPY --from=build /app/config ./config
 COPY --from=build /app/files ./files
 COPY --from=build /go/bin/migrate /usr/local/bin/migrate
 
-
-
 EXPOSE 8080
 CMD ["./main"]

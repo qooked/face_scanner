@@ -32,7 +32,7 @@ func NewFaceScannerHandlers(
 }
 
 type CreateFaceScannerTaskParams struct {
-	Image []byte `json:"image" swaggerType:"image"`
+	Image []byte `json:"image" validate:"required" swaggerType:"image"`
 }
 
 type CreateFaceScannerTaskResponse struct {
@@ -46,7 +46,9 @@ type CreateFaceScannerTaskResponse struct {
 // @Accept          jpeg
 // @Produce         json
 // @Security        ApiKeyAuth
-// @Param           request body CreateFaceScannerTaskParams true "Параметры задания"
+// @securityDefinitions.apikey ApiKeyAuth
+// @Param			Authorization	header	string	true	"Ключ, который можно получить при регистрации, basic base64(login:password)."
+// @Param           request body CreateFaceScannerTaskParams true "Загружаемое jpeg изображение"
 // @Success         200 {object} CreateFaceScannerTaskResponse
 // @Failure         400 {string} string "Invalid request"
 // @Failure         500 {string} string "Internal Server Error"
@@ -90,7 +92,7 @@ func (h *FaceScannerHandlers) CreateFaceScannerTask(c *fiber.Ctx) error {
 }
 
 type ExtendFaceScannerTaskParams struct {
-	Image    []byte `json:"image" swaggerType:"image"`
+	Image    []byte `json:"image" validate:"required" swaggerType:"image"`
 	TaskUUID string `json:"-"`
 }
 
@@ -100,8 +102,10 @@ type ExtendFaceScannerTaskParams struct {
 // @Accept          jpeg
 // @Produce         jpeg
 // @Security        ApiKeyAuth
-// @Param           taskUUID path string true "UUID задания"
-// @Param           request body ExtendFaceScannerTaskParams true "Параметры для расширения задания"
+// @securityDefinitions.apikey ApiKeyAuth
+// @Param			Authorization	header	string	true	"Ключ, который можно получить при регистрации, basic base64(login:password)."
+// @Param           taskUUID path string true "UUID задания, которое нужно расширить"
+// @Param           request body ExtendFaceScannerTaskParams true "Загружаемое jpeg изображение"
 // @Success         200
 // @Failure         400 {string} string "Bad request"
 // @Failure         500 {string} string "Internal Server Error"
@@ -181,6 +185,8 @@ type BoundingBox struct {
 // @Accept          json
 // @Produce         json
 // @Security        ApiKeyAuth
+// @securityDefinitions.apikey ApiKeyAuth
+// @Param			Authorization	header	string	true	"Ключ, который можно получить при регистрации, basic base64(login:password)."
 // @Param           taskUUID path string true "UUID задания"
 // @Success         200 {object} GetFaceScannerTaskResponse
 // @Failure         400 {string} string "Bad request"
@@ -244,7 +250,9 @@ func (h *FaceScannerHandlers) GetFaceScannerTask(c *fiber.Ctx) error {
 // @Accept          json
 // @Produce         json
 // @Security        ApiKeyAuth
+// @securityDefinitions.apikey ApiKeyAuth
 // @Param           taskUUID path string true "UUID задания"
+// @Param			Authorization	header	string	true	"Ключ, который можно получить при регистрации, basic base64(login:password)."
 // @Success         200
 // @Failure         400 {string} string "Bad request"
 // @Failure         500 {string} string "Internal Server Error"
@@ -279,6 +287,8 @@ func (h *FaceScannerHandlers) StartFaceScannerTask(c *fiber.Ctx) error {
 // @Accept          json
 // @Produce         json
 // @Security        ApiKeyAuth
+// @securityDefinitions.apikey ApiKeyAuth
+// @Param			Authorization	header	string	true	"Ключ, который можно получить при регистрации, basic base64(login:password)."
 // @Param           taskUUID path string true "UUID задания"
 // @Success         200
 // @Failure         400 {string} string "Bad request"

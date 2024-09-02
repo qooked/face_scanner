@@ -15,9 +15,8 @@ type Config struct {
 }
 
 type Server struct {
-	Host             string `yaml:"server_host"`
-	Port             string `yaml:"server_port"`
-	AuthorizationKey string `yaml:"server_authorization_key"`
+	Host string `yaml:"server_host"`
+	Port string `yaml:"server_port"`
 }
 
 type Postgres struct {
@@ -49,17 +48,12 @@ func LoadConfig() (cfg *Config, err error) {
 		return nil, err
 	}
 
-	// Override with environment variables
 	if host := os.Getenv("SERVER_HOST"); host != "" {
 		cfg.Server.Host = host
 	}
 	if port := os.Getenv("SERVER_PORT"); port != "" {
 		cfg.Server.Port = port
 	}
-	if key := os.Getenv("SERVER_AUTHORIZATION_KEY"); key != "" {
-		cfg.Server.AuthorizationKey = key
-	}
-
 	if host := os.Getenv("POSTGRES_HOST"); host != "" {
 		cfg.Postgres.Host = host
 	}
@@ -80,7 +74,6 @@ func LoadConfig() (cfg *Config, err error) {
 	if sslMode := os.Getenv("POSTGRES_SSL_MODE"); sslMode != "" {
 		cfg.Postgres.SslMode = sslMode
 	}
-
 	if url := os.Getenv("FACE_SCAN_API_URL"); url != "" {
 		cfg.FaceScanAPI.URL = url
 	}

@@ -8,6 +8,7 @@ import (
 	"faceScanner/internal/models"
 	"fmt"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/swagger"
 )
 
 type ServerOptions struct {
@@ -25,12 +26,16 @@ type Server struct {
 	options ServerOptions
 }
 
-type Usecase interface {
+type TaskUsecase interface {
 	ExtendFaceScannerTask(ctx context.Context, task models.ExtendFaceScannerTaskUsecase) (err error)
 	GetFaceScannerTask(ctx context.Context, taskUUID string) (task models.GetFaceScannerTaskResponseUsecase, err error)
 	StartFaceScannerTask(ctx context.Context, taskUUID string) (err error)
 	DeleteFaceScannerTask(ctx context.Context, taskUUID string) (err error)
 	CreateFaceScannerTask(ctx context.Context, task models.CreateFaceScannerTaskParamsUsecase) (err error)
+}
+type AuthUsecase interface {
+	GetUserCredentials(ctx context.Context, email string) (hashedPassword string, err error)
+	SaveUserCredentials(ctx context.Context, email string, unhashedPassword string) (err error)
 }
 
 func NewServer(
@@ -71,16 +76,21 @@ func (s *Server) Shutdown(ctx context.Context) error {
 	return nil
 }
 
-func (s *Server) AttachHandlers(ctx context.Context, taskUsecase Usecase) {
+func (s *Server) AttachHandlers(ctx context.Context, taskUsecase TaskUsecase, authUsecase AuthUsecase) {
 	middleware := middleware.NewHttpMiddleware(
-		s.options.AuthorizationKey,
+		authUsecase,
 	)
 
-	s.app.Use(middleware.AuthorizationMiddleware())
+	s.app.Get("/swagger/*", swagger.HandlerDefault)
 
 	taskGroup := s.app.Group("/task")
+	authGroup := s.app.Group("/auth")
+
 	taskHandlers := handlers.NewFaceScannerHandlers(
 		taskUsecase)
+	authHanddlers := handlers.NewAuthHandlers(authUsecase)
 
-	routes.AttachTaskRoutes(taskGroup, taskHandlers)
+	routes.AttachTaskRoutes(taskGroup, middleware, taskHandlers)
+	routes.AttachAuthRoutes(authGroup, authHanddlers)
+
 }

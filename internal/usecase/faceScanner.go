@@ -11,7 +11,7 @@ import (
 	"sync"
 )
 
-type Usecase struct {
+type FaceScannerUsecase struct {
 	repository            Repository
 	tevianRequestProvider TevianRequestProvider
 }
@@ -30,14 +30,14 @@ type Repository interface {
 	UpdateTaskImageInfo(ctx context.Context, task models.UpdateTaskImageInfoParamsRepository) (err error)
 }
 
-func New(repository Repository, tevianRequestProvider TevianRequestProvider) *Usecase {
-	return &Usecase{
+func NewFaceScannerUsecase(repository Repository, tevianRequestProvider TevianRequestProvider) *FaceScannerUsecase {
+	return &FaceScannerUsecase{
 		tevianRequestProvider: tevianRequestProvider,
 		repository:            repository,
 	}
 }
 
-func (uc *Usecase) ExtendFaceScannerTask(ctx context.Context, task models.ExtendFaceScannerTaskUsecase) (err error) {
+func (uc *FaceScannerUsecase) ExtendFaceScannerTask(ctx context.Context, task models.ExtendFaceScannerTaskUsecase) (err error) {
 	taskRepo, err := uc.repository.GetFaceScannerTask(ctx, task.TaskUUID)
 	if err != nil {
 		err = fmt.Errorf("uc.repository.GetFaceScannerTask(...): %w", err)
@@ -68,7 +68,7 @@ func (uc *Usecase) ExtendFaceScannerTask(ctx context.Context, task models.Extend
 	return nil
 }
 
-func (uc *Usecase) GetFaceScannerTask(ctx context.Context, taskUUID string) (task models.GetFaceScannerTaskResponseUsecase, err error) {
+func (uc *FaceScannerUsecase) GetFaceScannerTask(ctx context.Context, taskUUID string) (task models.GetFaceScannerTaskResponseUsecase, err error) {
 	var (
 		totalMaleCount, totalFemaleCount int
 		totalMaleAge, totalFemaleAge     float64
@@ -129,7 +129,7 @@ func (uc *Usecase) GetFaceScannerTask(ctx context.Context, taskUUID string) (tas
 	return task, nil
 }
 
-func (uc *Usecase) StartFaceScannerTask(ctx context.Context, taskUUID string) (err error) {
+func (uc *FaceScannerUsecase) StartFaceScannerTask(ctx context.Context, taskUUID string) (err error) {
 	var (
 		wg           sync.WaitGroup
 		statusID     = constants.StatusPending
@@ -213,7 +213,7 @@ func (uc *Usecase) StartFaceScannerTask(ctx context.Context, taskUUID string) (e
 
 	return err
 }
-func (uc *Usecase) DeleteFaceScannerTask(ctx context.Context, taskUUID string) (err error) {
+func (uc *FaceScannerUsecase) DeleteFaceScannerTask(ctx context.Context, taskUUID string) (err error) {
 
 	taskRepo, err := uc.repository.GetFaceScannerTask(ctx, taskUUID)
 	if err != nil {
@@ -235,7 +235,7 @@ func (uc *Usecase) DeleteFaceScannerTask(ctx context.Context, taskUUID string) (
 
 	return nil
 }
-func (uc *Usecase) CreateFaceScannerTask(ctx context.Context, task models.CreateFaceScannerTaskParamsUsecase) (err error) {
+func (uc *FaceScannerUsecase) CreateFaceScannerTask(ctx context.Context, task models.CreateFaceScannerTaskParamsUsecase) (err error) {
 	fileName, err := fileManager.SaveFile(task.ImageUUID, task.Image)
 	if err != nil {
 		err = fmt.Errorf("fileManager.SaveFile(...): %w", err)

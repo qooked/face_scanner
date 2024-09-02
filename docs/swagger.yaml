@@ -1,4 +1,4 @@
-basePath: /task
+basePath: /auth
 definitions:
   handlers.BoundingBox:
     properties:
@@ -17,6 +17,8 @@ definitions:
         items:
           type: integer
         type: array
+    required:
+    - image
     type: object
   handlers.CreateFaceScannerTaskResponse:
     properties:
@@ -31,6 +33,8 @@ definitions:
         items:
           type: integer
         type: array
+    required:
+    - image
     type: object
   handlers.Face:
     properties:
@@ -52,6 +56,21 @@ definitions:
       status:
         type: integer
       taskUUID:
+        type: string
+    type: object
+  handlers.RegisterParams:
+    properties:
+      login:
+        type: string
+      password:
+        type: string
+    required:
+    - login
+    - password
+    type: object
+  handlers.RegisterResponse:
+    properties:
+      authorization_token:
         type: string
     type: object
   handlers.SingleTaskPicture:
@@ -90,7 +109,12 @@ paths:
       consumes:
       - image/jpeg
       parameters:
-      - description: Параметры задания
+      - description: Ключ, который можно получить при регистрации, basic base64(login:password).
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Загружаемое jpeg изображение
         in: body
         name: request
         required: true
@@ -121,6 +145,11 @@ paths:
       consumes:
       - application/json
       parameters:
+      - description: Ключ, который можно получить при регистрации, basic base64(login:password).
+        in: header
+        name: Authorization
+        required: true
+        type: string
       - description: UUID задания
         in: path
         name: taskUUID
@@ -149,12 +178,17 @@ paths:
       consumes:
       - image/jpeg
       parameters:
-      - description: UUID задания
+      - description: Ключ, который можно получить при регистрации, basic base64(login:password).
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: UUID задания, которое нужно расширить
         in: path
         name: taskUUID
         required: true
         type: string
-      - description: Параметры для расширения задания
+      - description: Загружаемое jpeg изображение
         in: body
         name: request
         required: true
@@ -183,6 +217,11 @@ paths:
       consumes:
       - application/json
       parameters:
+      - description: Ключ, который можно получить при регистрации, basic base64(login:password).
+        in: header
+        name: Authorization
+        required: true
+        type: string
       - description: UUID задания
         in: path
         name: taskUUID
@@ -208,6 +247,39 @@ paths:
       summary: Получение данных по заданию.
       tags:
       - api
+  /register:
+    post:
+      consumes:
+      - application/json
+      description: Регистрация нового пользователя и получение токена авторизации,
+        используется для всех других запросов
+      parameters:
+      - description: Логин и пароль пользователя
+        in: body
+        name: RegisterParams
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.RegisterParams'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Успешный ответ с токеном авторизации
+          schema:
+            $ref: '#/definitions/handlers.RegisterResponse'
+        "400":
+          description: Неверный запрос, например, если логин не является email
+          schema:
+            type: string
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Регистрация нового пользователя и получение токена авторизации.
+      tags:
+      - api
   /start/{taskUUID}:
     get:
       consumes:
@@ -216,6 +288,11 @@ paths:
       - description: UUID задания
         in: path
         name: taskUUID
+        required: true
+        type: string
+      - description: Ключ, который можно получить при регистрации, basic base64(login:password).
+        in: header
+        name: Authorization
         required: true
         type: string
       produces:
@@ -236,9 +313,11 @@ paths:
       summary: Запуск задания на распознавание лиц.
       tags:
       - api
+security:
+- ApiKeyAuth: []
 securityDefinitions:
   ApiKeyAuth:
-    description: Ключ который выставляется в переменных окружения
+    description: Ключ, который можно получить при регистрации, basic base64(login:password)
     in: header
     name: Authorization
     type: apiKey

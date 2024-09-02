@@ -24,3 +24,12 @@ CREATE TABLE IF NOT EXISTS tasks
 
 ALTER TABLE tasks
     OWNER TO root;
+
+CREATE TABLE IF NOT EXISTS user_data
+(
+    email     TEXT    DEFAULT ''::text NOT NULL UNIQUE,
+    hash_password TEXT DEFAULT ''::text       NOT NULL
+);
+
+ALTER TABLE user_data
+    OWNER TO root;

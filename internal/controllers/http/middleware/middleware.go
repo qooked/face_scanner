@@ -1,13 +1,19 @@
 package middleware
 
+import "context"
+
 type HTTPMiddleware struct {
-	authorizationKey string
+	authUsecase AuthUsecase
+}
+
+type AuthUsecase interface {
+	GetUserCredentials(ctx context.Context, email string) (hashedPassword string, err error)
 }
 
 func NewHttpMiddleware(
-	authorizationKey string,
+	authUsecase AuthUsecase,
 ) *HTTPMiddleware {
 	return &HTTPMiddleware{
-		authorizationKey: authorizationKey,
+		authUsecase: authUsecase,
 	}
 }

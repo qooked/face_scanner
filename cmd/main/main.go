@@ -48,13 +48,15 @@ func main() {
 
 	tevianRequestProvider := tevianAPI.NewTevianProvider(cfg.FaceScanAPI.URL, cfg.FaceScanAPI.Authorization, cfg.FaceScanAPI.MimeType)
 	repo := repository.New(postgres)
-	uc := usecase.New(repo, tevianRequestProvider)
+	faceScannerUC := usecase.NewFaceScannerUsecase(repo, tevianRequestProvider)
+	authUC := usecase.NewAuthUsecase(repo)
 
-	server.AttachHandlers(ctx, uc)
-
-	doneChan := make(chan struct{})
+	server.AttachHandlers(ctx, faceScannerUC, authUC)
 	go server.Run()
+
 	slog.Info(fmt.Sprintf("Server started on %s:%s", cfg.Server.Host, cfg.Server.Port))
+	doneChan := make(chan struct{})
+
 	go func() {
 		<-signalChan
 		slog.Info("Shutting down server...")
@@ -64,6 +66,7 @@ func main() {
 		}
 		doneChan <- struct{}{}
 	}()
+
 	<-doneChan
 	cancel()
 	slog.Info("Application stopped")

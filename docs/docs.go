@@ -34,7 +34,14 @@ const docTemplate = `{
                 "summary": "Создание задания для распознавания лиц.",
                 "parameters": [
                     {
-                        "description": "Параметры задания",
+                        "type": "string",
+                        "description": "Ключ, который можно получить при регистрации, basic base64(login:password).",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "Загружаемое jpeg изображение",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -85,6 +92,13 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
+                        "description": "Ключ, который можно получить при регистрации, basic base64(login:password).",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
                         "description": "UUID задания",
                         "name": "taskUUID",
                         "in": "path",
@@ -130,13 +144,20 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "UUID задания",
+                        "description": "Ключ, который можно получить при регистрации, basic base64(login:password).",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "UUID задания, которое нужно расширить",
                         "name": "taskUUID",
                         "in": "path",
                         "required": true
                     },
                     {
-                        "description": "Параметры для расширения задания",
+                        "description": "Загружаемое jpeg изображение",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -184,6 +205,13 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
+                        "description": "Ключ, который можно получить при регистрации, basic base64(login:password).",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
                         "description": "UUID задания",
                         "name": "taskUUID",
                         "in": "path",
@@ -205,6 +233,57 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/register": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Регистрация нового пользователя и получение токена авторизации, используется для всех других запросов",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "api"
+                ],
+                "summary": "Регистрация нового пользователя и получение токена авторизации.",
+                "parameters": [
+                    {
+                        "description": "Логин и пароль пользователя",
+                        "name": "RegisterParams",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.RegisterParams"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Успешный ответ с токеном авторизации",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.RegisterResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Неверный запрос, например, если логин не является email",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
                         "schema": {
                             "type": "string"
                         }
@@ -235,6 +314,13 @@ const docTemplate = `{
                         "description": "UUID задания",
                         "name": "taskUUID",
                         "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Ключ, который можно получить при регистрации, basic base64(login:password).",
+                        "name": "Authorization",
+                        "in": "header",
                         "required": true
                     }
                 ],
@@ -278,6 +364,9 @@ const docTemplate = `{
         },
         "handlers.CreateFaceScannerTaskParams": {
             "type": "object",
+            "required": [
+                "image"
+            ],
             "properties": {
                 "image": {
                     "type": "array",
@@ -300,6 +389,9 @@ const docTemplate = `{
         },
         "handlers.ExtendFaceScannerTaskParams": {
             "type": "object",
+            "required": [
+                "image"
+            ],
             "properties": {
                 "image": {
                     "type": "array",
@@ -339,6 +431,29 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "taskUUID": {
+                    "type": "string"
+                }
+            }
+        },
+        "handlers.RegisterParams": {
+            "type": "object",
+            "required": [
+                "login",
+                "password"
+            ],
+            "properties": {
+                "login": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                }
+            }
+        },
+        "handlers.RegisterResponse": {
+            "type": "object",
+            "properties": {
+                "authorization_token": {
                     "type": "string"
                 }
             }
@@ -383,19 +498,24 @@ const docTemplate = `{
     },
     "securityDefinitions": {
         "ApiKeyAuth": {
-            "description": "Ключ который выставляется в переменных окружения",
+            "description": "Ключ, который можно получить при регистрации, basic base64(login:password)",
             "type": "apiKey",
             "name": "Authorization",
             "in": "header"
         }
-    }
+    },
+    "security": [
+        {
+            "ApiKeyAuth": []
+        }
+    ]
 }`
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
 	Host:             "localhost:8080",
-	BasePath:         "/task",
+	BasePath:         "/auth",
 	Schemes:          []string{},
 	Title:            "Face Scanner",
 	Description:      "Документация к сервису по распознаванию лиц",

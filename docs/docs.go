@@ -461,9 +461,6 @@ const docTemplate = `{
         "handlers.SingleTaskPicture": {
             "type": "object",
             "properties": {
-                "apiResponse": {
-                    "type": "string"
-                },
                 "face": {
                     "type": "array",
                     "items": {
@@ -498,7 +495,6 @@ const docTemplate = `{
     },
     "securityDefinitions": {
         "ApiKeyAuth": {
-            "description": "Ключ, который можно получить при регистрации, basic base64(login:password)",
             "type": "apiKey",
             "name": "Authorization",
             "in": "header"
@@ -515,10 +511,10 @@ const docTemplate = `{
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
 	Host:             "localhost:8080",
-	BasePath:         "/auth",
+	BasePath:         "/task",
 	Schemes:          []string{},
 	Title:            "Face Scanner",
-	Description:      "Документация к сервису по распознаванию лиц",
+	Description:      "Документация к сервису по распознаванию лиц\nAuthorization - Ключ, который можно получить при регистрации, basic base64(login:password), требуется для всех запросов группы task\nСтатусы заданий\nНовое задание   1\nЗадание в обработке 2\nУспешное задание    3\nЧастично успешное задание 4\nНеуспешное задание  5",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

@@ -65,7 +65,6 @@ func (p *TevianApiProvider) ProvideRequest(image []byte) (tevianApiResponse mode
 		return tevianApiResponse, err
 	}
 
-	fmt.Println(string(response.Body()))
 	if response.StatusCode() != 200 {
 		err = fmt.Errorf("response.StatusCode() != 200")
 		return tevianApiResponse, err

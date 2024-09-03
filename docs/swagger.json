@@ -1,13 +1,13 @@
 {
     "swagger": "2.0",
     "info": {
-        "description": "Документация к сервису по распознаванию лиц",
+        "description": "Документация к сервису по распознаванию лиц\nAuthorization - Ключ, который можно получить при регистрации, basic base64(login:password), требуется для всех запросов группы task\nСтатусы заданий\nНовое задание   1\nЗадание в обработке 2\nУспешное задание    3\nЧастично успешное задание 4\nНеуспешное задание  5",
         "title": "Face Scanner",
         "contact": {},
         "version": "1.0"
     },
     "host": "localhost:8080",
-    "basePath": "/auth",
+    "basePath": "/task",
     "paths": {
         "/create": {
             "post": {
@@ -455,9 +455,6 @@
         "handlers.SingleTaskPicture": {
             "type": "object",
             "properties": {
-                "apiResponse": {
-                    "type": "string"
-                },
                 "face": {
                     "type": "array",
                     "items": {
@@ -492,7 +489,6 @@
     },
     "securityDefinitions": {
         "ApiKeyAuth": {
-            "description": "Ключ, который можно получить при регистрации, basic base64(login:password)",
             "type": "apiKey",
             "name": "Authorization",
             "in": "header"

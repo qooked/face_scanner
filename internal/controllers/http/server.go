@@ -41,7 +41,6 @@ type AuthUsecase interface {
 func NewServer(
 	host string,
 	port string,
-	authorizationKey string,
 ) *Server {
 	return &Server{
 		app: fiber.New(),
@@ -50,7 +49,6 @@ func NewServer(
 				Host: host,
 				Port: port,
 			},
-			AuthorizationKey: authorizationKey,
 		},
 	}
 }

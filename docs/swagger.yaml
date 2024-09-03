@@ -1,4 +1,4 @@
-basePath: /auth
+basePath: /task
 definitions:
   handlers.BoundingBox:
     properties:
@@ -75,8 +75,6 @@ definitions:
     type: object
   handlers.SingleTaskPicture:
     properties:
-      apiResponse:
-        type: string
       face:
         items:
           $ref: '#/definitions/handlers.Face'
@@ -100,7 +98,15 @@ definitions:
 host: localhost:8080
 info:
   contact: {}
-  description: Документация к сервису по распознаванию лиц
+  description: |-
+    Документация к сервису по распознаванию лиц
+    Authorization - Ключ, который можно получить при регистрации, basic base64(login:password), требуется для всех запросов группы task
+    Статусы заданий
+    Новое задание   1
+    Задание в обработке 2
+    Успешное задание    3
+    Частично успешное задание 4
+    Неуспешное задание  5
   title: Face Scanner
   version: "1.0"
 paths:
@@ -317,7 +323,6 @@ security:
 - ApiKeyAuth: []
 securityDefinitions:
   ApiKeyAuth:
-    description: Ключ, который можно получить при регистрации, basic base64(login:password)
     in: header
     name: Authorization
     type: apiKey

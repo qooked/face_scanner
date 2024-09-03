@@ -20,13 +20,19 @@ type Middleware interface {
 // @title           Face Scanner
 // @version         1.0
 // @description     Документация к сервису по распознаванию лиц
+// @description     Authorization - Ключ, который можно получить при регистрации, basic base64(login:password), требуется для всех запросов группы task
+// @description Статусы заданий
+// @description 	Новое задание   1
+// @description Задание в обработке 2
+// @description Успешное задание    3
+// @description Частично успешное задание 4
+// @description Неуспешное задание  5
 // @host            localhost:8080
 // @BasePath        /task
 // @Security        ApiKeyAuth
 // @securityDefinitions.apikey ApiKeyAuth
 // @in              header
 // @name            Authorization
-// @description     Ключ, который можно получить при регистрации, basic base64(login:password)
 func AttachTaskRoutes(router fiber.Router, middleware Middleware, handlers FaceScanHandlers) {
 	router.Use(middleware.AuthorizationMiddleware())
 	router.Post("/extend/:taskUUID", handlers.ExtendFaceScannerTask)

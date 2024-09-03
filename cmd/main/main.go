@@ -43,7 +43,6 @@ func main() {
 	server := http.NewServer(
 		cfg.Server.Host,
 		cfg.Server.Port,
-		cfg.Server.AuthorizationKey,
 	)
 
 	tevianRequestProvider := tevianAPI.NewTevianProvider(cfg.FaceScanAPI.URL, cfg.FaceScanAPI.Authorization, cfg.FaceScanAPI.MimeType)

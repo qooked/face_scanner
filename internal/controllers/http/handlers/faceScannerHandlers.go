@@ -154,10 +154,9 @@ type GetFaceScannerTaskResponse struct {
 }
 
 type SingleTaskPicture struct {
-	ApiResponse string `json:"apiResponse"`
-	ImageUUID   string `json:"imageUUID"`
-	FileName    string `json:"fileName"`
-	Faces       []Face `json:"face"`
+	ImageUUID string `json:"imageUUID"`
+	FileName  string `json:"fileName"`
+	Faces     []Face `json:"face"`
 }
 
 type Stats struct {
@@ -234,10 +233,9 @@ func (h *FaceScannerHandlers) GetFaceScannerTask(c *fiber.Ctx) error {
 		}
 
 		response.ImagesData = append(response.ImagesData, SingleTaskPicture{
-			ApiResponse: image.ApiResponse,
-			ImageUUID:   image.ImageUUID,
-			Faces:       faces,
-			FileName:    image.FileName,
+			ImageUUID: image.ImageUUID,
+			Faces:     faces,
+			FileName:  image.FileName,
 		})
 	}
 

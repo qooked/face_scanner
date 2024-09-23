@@ -37,7 +37,7 @@ func AttachTaskRoutes(router fiber.Router, middleware Middleware, handlers FaceS
 	router.Use(middleware.AuthorizationMiddleware())
 	router.Post("/extend/:taskUUID", handlers.ExtendFaceScannerTask)
 	router.Get("/get/:taskUUID", handlers.GetFaceScannerTask)
-	router.Get("/start/:taskUUID", handlers.StartFaceScannerTask)
+	router.Post("/start/:taskUUID", handlers.StartFaceScannerTask)
 	router.Delete("/delete/:taskUUID", handlers.DeleteFaceScannerTask)
 	router.Post("/create", handlers.CreateFaceScannerTask)
 

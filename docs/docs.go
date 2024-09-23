@@ -292,7 +292,7 @@ const docTemplate = `{
             }
         },
         "/start/{taskUUID}": {
-            "get": {
+            "post": {
                 "security": [
                     {
                         "ApiKeyAuth": []

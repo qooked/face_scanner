@@ -254,7 +254,7 @@ func (h *FaceScannerHandlers) GetFaceScannerTask(c *fiber.Ctx) error {
 // @Success         200
 // @Failure         400 {string} string "Bad request"
 // @Failure         500 {string} string "Internal Server Error"
-// @Router          /start/{taskUUID} [get]
+// @Router          /start/{taskUUID} [post]
 func (h *FaceScannerHandlers) StartFaceScannerTask(c *fiber.Ctx) error {
 	taskUUID := c.Params("taskUUID")
 	if taskUUID == "" {
